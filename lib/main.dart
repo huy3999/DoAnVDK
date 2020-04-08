@@ -1,80 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:barcode_scan/barcode_scan.dart';
+import 'package:doan_vdk/authentication.dart';
+import 'package:doan_vdk/root_page.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(new MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Do An VDK QR Scanner',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Do An VDK QR Scanner'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-
-  String result = "Please scan the QR code or Barcode";
-
-  Future _scanQR() async {
-    try {
-      String qrResult = await BarcodeScanner.scan();
-      setState(() {
-        result = qrResult;
-      });
-    } on PlatformException catch (ex) {
-      if (ex.code == BarcodeScanner.CameraAccessDenied) {
-        setState(() {
-          result = "Camera permission was denied";
-        });
-      } else {
-        setState(() {
-          result = "Unknown Error $ex";
-        });
-      }
-    } on FormatException {
-      setState(() {
-        result = "You pressed the back button before scanning anything";
-      });
-    } catch (ex) {
-      setState(() {
-        result = "Unknown Error $ex";
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Do An VDK QR Scanner"),
-      ),
-      body: Center(
-        child: Text(
-          result,
-          style: new TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+    return new MaterialApp(
+        title: 'Flutter login demo',
+        debugShowCheckedModeBanner: false,
+        theme: new ThemeData(
+          primarySwatch: Colors.blue,
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        icon: Icon(Icons.camera_alt),
-        label: Text("Scan"),
-        onPressed: _scanQR,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
+        home: new RootPage(auth: new Auth()));
   }
 }

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "543998092988",
+    "firebase_url": "https://doanvdk-6056c.firebaseio.com",
+    "project_id": "doanvdk-6056c",
+    "storage_bucket": "doanvdk-6056c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:543998092988:android:26d136b8d3637e73ec12b9",
+        "android_client_info": {
+          "package_name": "com.example.doan_vdk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "543998092988-p2teiqnhv9kii0pg3v6jg83tuqoq1dj5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWOb85cb_D86T3IVGMKVKcCnx1fJQ-MjA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "543998092988-p2teiqnhv9kii0pg3v6jg83tuqoq1dj5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
