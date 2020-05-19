@@ -1,4 +1,5 @@
   
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:doan_vdk/authentication.dart';
 
@@ -17,8 +18,9 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
 
   String _email;
   String _password;
+  String _plate;
   String _errorMessage;
-
+  String userId = "";
   bool _isLoginForm;
   bool _isLoading;
 
@@ -31,7 +33,6 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
     }
     return false;
   }
-
   // Perform login or signup
   void validateAndSubmit() async {
     setState(() {
@@ -39,16 +40,23 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
       _isLoading = true;
     });
     if (validateAndSave()) {
-      String userId = "";
+
       try {
         if (_isLoginForm) {
           userId = await widget.auth.signIn(_email, _password);
           print('Signed in: $userId');
         } else {
           userId = await widget.auth.signUp(_email, _password);
+          FirebaseDatabase.instance.reference().child('user').child(userId)
+          .set({
+          'plate': _plate,
+          'status': 0
+          //'created_at': DateTime.now()
+          });
           //widget.auth.sendEmailVerification();
           //_showVerifyEmailSentDialog();
           print('Signed up user: $userId');
+          print('plate: $_plate');
         }
         setState(() {
           _isLoading = false;
@@ -58,6 +66,14 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
           widget.loginCallback();
         }
       } catch (e) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context){
+          return AlertDialog(
+          title: Text("Alert"),
+          content: Text('Error: $e'),
+        );
+        });
         print('Error: $e');
         setState(() {
           _isLoading = false;
@@ -65,7 +81,10 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
           _formKey.currentState.reset();
         });
       }
+
     }
+
+    
   }
 
   @override
@@ -145,6 +164,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
             children: <Widget>[
               showLogo(),
               showEmailInput(),
+              if(!_isLoginForm) showPlateInput(),
               showPasswordInput(),
               showPrimaryButton(),
               showSecondaryButton(),
@@ -203,10 +223,27 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
       ),
     );
   }
-
+  Widget showPlateInput() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+      child: new TextFormField(
+        maxLines: 1,
+        keyboardType: TextInputType.text,
+        autofocus: false,
+        decoration: new InputDecoration(
+            hintText: '11X1-11111',
+            icon: new Icon(
+              Icons.mail,
+              color: Colors.grey,
+            )),
+        validator: (value) => value.isEmpty ? 'Plate can\'t be empty' : null,
+        onSaved: (value) => _plate = value.trim(),
+      ),
+    );
+  }
   Widget showPasswordInput() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 0.0),
+      padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
       child: new TextFormField(
         maxLines: 1,
         obscureText: true,
