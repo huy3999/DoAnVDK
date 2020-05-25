@@ -6,7 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:barcode_scan/barcode_scan.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -42,6 +42,11 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         result = qrResult;
       });
+      QrImage(
+        data: result,
+        size: 320,
+        gapless: false,
+        );
       //if(result == "123456"){
         successDialog();
         FirebaseDatabase.instance.reference().child('user').child(userId).child('Xe').child(result)
