@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       //if(result == "123456"){
 
-        successDialog();
+        //successDialog();
 
         FirebaseDatabase.instance.reference().child('user').child(userId).child('Xe').child(result)
           .set({
@@ -129,6 +129,39 @@ Future<void> successDialog() async {
     },
   );
 }
+  Future<void> showQRDialog() async {
+    final bodyHeight = MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom;
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Vui lòng đưa QR đến trước camera'),
+          content:
+          Container(
+            width: 300, height: 300,
+            child:  Center(
+              child: RepaintBoundary(
+                key: globalKey,
+                child: QrImage(
+                  data: _dataString,
+                  size: 0.5 * bodyHeight,
+                ),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -204,13 +237,13 @@ Future<void> successDialog() async {
   _contentWidget() {
     final bodyHeight = MediaQuery.of(context).size.height - MediaQuery.of(context).viewInsets.bottom;
     return  Container(
-      color: const Color(0xFFFFFFFF),
+      //color: const Color(0xFFFFFFFF),
       child:  Column(
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(
               top: _topSectionTopPadding,
-              left: 20.0,
+              left: 70.0,
               right: 10.0,
               bottom: _topSectionBottomPadding,
             ),
@@ -239,6 +272,7 @@ Future<void> successDialog() async {
                         setState(() {
                           getStringValuesSF();
                           print(_dataString);
+                          showQRDialog();
                         });
                       }
                     ),
@@ -248,24 +282,24 @@ Future<void> successDialog() async {
               ),
             ),
           ),
-          Expanded(
-            child:  Center(
-              child: RepaintBoundary(
-                key: globalKey,
-                child: QrImage(
-                  data: _dataString,
-                  size: 0.5 * bodyHeight,
-
-//                    onError: (ex) {
-//                      print("[QR] ERROR - $ex");
-//                      setState((){
-//                        _inputErrorText = "Error! Maybe your input value is too long?";
-//                      });
-//                    },
-                ),
-              ),
-            ),
-          ),
+//          Expanded(
+//            child:  Center(
+//              child: RepaintBoundary(
+//                key: globalKey,
+//                child: QrImage(
+//                  data: _dataString,
+//                  size: 0.5 * bodyHeight,
+//
+////                    onError: (ex) {
+////                      print("[QR] ERROR - $ex");
+////                      setState((){
+////                        _inputErrorText = "Error! Maybe your input value is too long?";
+////                      });
+////                    },
+//                ),
+//              ),
+//            ),
+//          ),
         ],
       ),
     );
