@@ -10,6 +10,11 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:io';
+import 'package:doan_vdk/app_theme.dart';
+import 'package:doan_vdk/model/tabIcon_data.dart';
+import 'package:flutter/material.dart';
+import 'package:doan_vdk/bottom_navigation_bar.dart';
+import 'app_theme.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,7 +41,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   String userId ="";
   String email = "";
   String result = "Please scan the QR code or Barcode";
@@ -48,6 +53,13 @@ class _MyHomePageState extends State<MyHomePage> {
   String _dataString = "Hello from this QR";
   String _inputErrorText;
   final TextEditingController _textController =  TextEditingController();
+
+  AnimationController animationController;
+  List<TabIconData> tabIconsList = TabIconData.tabIconsList;
+  Widget tabBody = Container(
+    color: AppTheme.background,
+  );
+
   Future _scanQR() async {
     try {
       String qrResult = await BarcodeScanner.scan();
@@ -172,66 +184,104 @@ Future<void> successDialog() async {
           email = user?.email;
         }
       });
+      tabIconsList.forEach((TabIconData tab) {
+        tab.isSelected = false;
+      });
+      tabIconsList[0].isSelected = true;
+
+      animationController = AnimationController(
+          duration: const Duration(milliseconds: 600), vsync: this);
+      //tabBody = MyDiaryScreen(animationController: animationController);
     });
   }
   @override
+  void dispose() {
+    animationController.dispose();
+    super.dispose();
+  }
+//  @override
+//  Widget build(BuildContext context) {
+//    return Scaffold(
+//      appBar: AppBar(
+//        title: Text("Do An VDK QR Scanner"),
+//        actions: <Widget>[
+//            new FlatButton(
+//                child: new Text('Logout',
+//                    style: new TextStyle(fontSize: 17.0, color: Colors.white)),
+//                onPressed: signOut)
+//          ],
+//
+//      ),
+//      body: _contentWidget(),
+//      drawer: Drawer(
+//        // Add a ListView to the drawer. This ensures the user can scroll
+//        // through the options in the drawer if there isn't enough vertical
+//        // space to fit everything.
+//        child: ListView(
+//          // Important: Remove any padding from the ListView.
+//          padding: EdgeInsets.zero,
+//          children: <Widget>[
+//            DrawerHeader(
+//              child: Text(
+//                email,
+//                style: new TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white),
+//              ),
+//              decoration: BoxDecoration(
+//                color: Colors.blue,
+//              ),
+//            ),
+//            ListTile(
+//              title: Text('Item 1'),
+//              onTap: () {
+//                // Update the state of the app
+//                // ...
+//                // Then close the drawer
+//                Navigator.pop(context);
+//              },
+//            ),
+//            ListTile(
+//              title: Text('Item 2'),
+//              onTap: () {
+//                // Update the state of the app
+//                // ...
+//                // Then close the drawer
+//                Navigator.pop(context);
+//              },
+//            ),
+//          ],
+//        ),
+//      ),
+//      floatingActionButton: FloatingActionButton.extended(
+//        icon: Icon(Icons.camera_alt),
+//        label: Text("Scan"),
+//        onPressed: _scanQR,
+//      ),
+//      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+//    );
+//  }
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Do An VDK QR Scanner"),
-        actions: <Widget>[
-            new FlatButton(
-                child: new Text('Logout',
-                    style: new TextStyle(fontSize: 17.0, color: Colors.white)),
-                onPressed: signOut)
-          ],
-
-      ),
-      body: _contentWidget(),
-      drawer: Drawer(
-        // Add a ListView to the drawer. This ensures the user can scroll
-        // through the options in the drawer if there isn't enough vertical
-        // space to fit everything.
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              child: Text(
-                email,
-                style: new TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
-            ListTile(
-              title: Text('Item 1'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: Text('Item 2'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                Navigator.pop(context);
-              },
-            ),
-          ],
+    return Container(
+      color: AppTheme.background,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: FutureBuilder<bool>(
+          future: getData(),
+          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+            if (!snapshot.hasData) {
+              return const SizedBox();
+            } else {
+              return Stack(
+                children: <Widget>[
+                  _contentWidget(),
+                  //tabBody,
+                  bottomBar(),
+                ],
+              );
+            }
+          },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        icon: Icon(Icons.camera_alt),
-        label: Text("Scan"),
-        onPressed: _scanQR,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
   _contentWidget() {
@@ -264,44 +314,129 @@ Future<void> successDialog() async {
                   Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 10.0),
-                    child:  FlatButton(
-                      child:  Text("TẠO QR",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25)),
-                        color: Colors.blueAccent,
-                        textColor: Colors.white,
-                      onPressed: (){
-                        setState(() {
-                          getStringValuesSF();
-                          print(_dataString);
-                          showQRDialog();
-                        });
-                      }
+                    child:
+
+                    SizedBox(
+                      width: 120,
+                      height: 100,
+                      child: Container(
+                        //width: 200, height: 100,
+                        alignment: Alignment.topCenter,
+                        color: Colors.transparent,
+                        child: SizedBox(
+                          width: 120,
+                          height: 100,
+                          child: Padding(
+                            padding: const EdgeInsets.all(1.0),
+                              child: Container(
+                                // alignment: Alignment.center,s
+                                decoration: BoxDecoration(
+                                  color: AppTheme.nearlyDarkBlue,
+                                  gradient: LinearGradient(
+                                      colors: [
+                                        AppTheme.nearlyDarkBlue,
+                                        //Color(#6A88E5),
+                                        Color.fromRGBO(106, 136, 229, 100)
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight),
+                                  shape: BoxShape.rectangle,
+                                  boxShadow: <BoxShadow>[
+                                    BoxShadow(
+                                        color: AppTheme.nearlyDarkBlue
+                                            .withOpacity(0.4),
+                                        offset: const Offset(8.0, 16.0),
+                                        blurRadius: 16.0),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    splashColor: Colors.white.withOpacity(0.1),
+                                    highlightColor: Colors.transparent,
+                                    focusColor: Colors.transparent,
+                                    onTap: () {
+                                      setState(() {
+                                        getStringValuesSF();
+                                        print(_dataString);
+                                        showQRDialog();
+                                      });
+                                    },
+                                    child: Center(
+                                      child:
+                                      Text("TẠO QR",
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25, color: Colors.white)
+                                      ),
+                                    )
+
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
+//                    FlatButton(
+//                      child:  Text("TẠO QR",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25)),
+//                        color: Colors.blueAccent,
+//                        textColor: Colors.white,
+//                      onPressed: (){
+//                        setState(() {
+//                          getStringValuesSF();
+//                          print(_dataString);
+//                          showQRDialog();
+//                        });
+//                      }
+//                    ),
                   )
-                  ),
+                  //),
                 ],
               ),
             ),
           ),
-//          Expanded(
-//            child:  Center(
-//              child: RepaintBoundary(
-//                key: globalKey,
-//                child: QrImage(
-//                  data: _dataString,
-//                  size: 0.5 * bodyHeight,
-//
-////                    onError: (ex) {
-////                      print("[QR] ERROR - $ex");
-////                      setState((){
-////                        _inputErrorText = "Error! Maybe your input value is too long?";
-////                      });
-////                    },
-//                ),
-//              ),
-//            ),
-//          ),
         ],
       ),
+    );
+  }
+  Future<bool> getData() async {
+    await Future<dynamic>.delayed(const Duration(milliseconds: 200));
+    return true;
+  }
+
+  Widget bottomBar() {
+    return Column(
+      children: <Widget>[
+        const Expanded(
+          child: SizedBox(),
+        ),
+        BottomBarView(
+          tabIconsList: tabIconsList,
+          addClick: _scanQR,
+          changeIndex: (int index) {
+            if (index == 0 || index == 2) {
+              animationController.reverse().then<dynamic>((data) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  tabBody = _contentWidget();//(animationController:animationController);
+                  // MyDiaryScreen(animationController: animationController);
+                });
+              });
+            } else if (index == 1 || index == 3) {
+              animationController.reverse().then<dynamic>((data) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  //tabBody = TrainingScreen(animationController: animationController);
+                });
+              });
+            }
+          },
+        ),
+      ],
     );
   }
   addStringToSF(value) async {
