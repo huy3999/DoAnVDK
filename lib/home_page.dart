@@ -18,6 +18,7 @@ import 'app_theme.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -48,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   static const double _topSectionTopPadding = 50.0;
   static const double _topSectionBottomPadding = 20.0;
   static const double _topSectionHeight = 50.0;
+  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
   GlobalKey globalKey = new GlobalKey();
   String _dataString = "Hello from this QR";
@@ -65,19 +67,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       String qrResult = await BarcodeScanner.scan();
       setState(() {
         result = qrResult;
-        addStringToSF(result);
+        String time = dateFormat.format(DateTime.now());
+        _dataString = result+time;
+        print(_dataString);
+        addStringToSF(_dataString);
+        plateCheckDialog(result);
       });
 
       //if(result == "123456"){
 
         //successDialog();
 
-        FirebaseDatabase.instance.reference().child('user').child(userId).child('Xe').child(result)
-          .set({
-          'plate': result,
-          'status': 0
-          //'created_at': DateTime.now()
-          });
+
      // }
     } on PlatformException catch (ex) {
       if (ex.code == BarcodeScanner.CameraAccessDenied) {
@@ -167,6 +168,51 @@ Future<void> successDialog() async {
               child: Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  Future<void> plateCheckDialog(String qrResult) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Biển số xe bạn là:'),
+          content:
+          Text(
+           qrResult,
+            style: new TextStyle(fontSize: 17.0, color: Colors.black)
+        ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('XÁC NHẬN'),
+              onPressed: () {
+                //String time = dateFormat.format(DateTime.now());
+                //final dbRef = FirebaseDatabase.instance.reference().child("Xe");
+                FirebaseDatabase.instance.reference().child('Xe').child(result).child('info')
+                    .set({
+                  'plate': result,
+                  'status': 1,
+                  'code': _dataString
+                  //'created_at': DateTime.now()
+                });
+                //_dataString = result+time;
+                //print(_dataString);
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('QUÉT LẠI'),
+              onPressed: () {
+                FirebaseDatabase.instance.reference().child('Xe').child(result).child('info')
+                    .set({
+                  'status': 2,
+                });
+                _scanQR();
               },
             ),
           ],
