@@ -52,7 +52,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
   GlobalKey globalKey = new GlobalKey();
+  String resultFromDB ="";
   String _dataString = "Hello from this QR";
+  var plate;
   String _inputErrorText;
   final TextEditingController _textController =  TextEditingController();
 
@@ -67,19 +69,28 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       String qrResult = await BarcodeScanner.scan();
       setState(() {
         result = qrResult;
-        String time = dateFormat.format(DateTime.now());
-        _dataString = result+time;
-        print(_dataString);
-        addStringToSF(_dataString);
-        plateCheckDialog(result);
+        plate = qrResult.split('-');
+
       });
 
-      //if(result == "123456"){
-
-        //successDialog();
-
-
-     // }
+      //while(resultFromDB == "") {
+      getInfo(plate[0]).then((val) {
+        print(val);
+        resultFromDB = val;
+        print("from db 1:" + resultFromDB);
+      });
+      //}
+//      if(resultFromDB == "") {
+//        getInfo(plate[0]).then((val) {
+//          print(val);
+//          resultFromDB = val;
+//          print("from db 2:" + resultFromDB);
+//        });
+//      }
+      _dataString = result;
+      print(_dataString);
+      addStringToSF(_dataString);
+      plateCheckDialog(plate);
     } on PlatformException catch (ex) {
       if (ex.code == BarcodeScanner.CameraAccessDenied) {
         setState(() {
@@ -175,7 +186,7 @@ Future<void> successDialog() async {
       },
     );
   }
-  Future<void> plateCheckDialog(String qrResult) async {
+  Future<void> plateCheckDialog(var qrResult) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -184,32 +195,38 @@ Future<void> successDialog() async {
           title: Text('Biển số xe bạn là:'),
           content:
           Text(
-           qrResult,
+           qrResult[0],
             style: new TextStyle(fontSize: 17.0, color: Colors.black)
         ),
           actions: <Widget>[
             FlatButton(
               child: Text('XÁC NHẬN'),
               onPressed: () {
+                String code = qrResult[0]+ '-'+qrResult[1];
+
+                //String resultFromDB = getInfo(qrResult[0]) as String;
                 //String time = dateFormat.format(DateTime.now());
                 //final dbRef = FirebaseDatabase.instance.reference().child("Xe");
-                FirebaseDatabase.instance.reference().child('Xe').child(result).child('info')
-                    .set({
-                  'plate': result,
-                  'status': 1,
-                  'code': _dataString
-                  //'created_at': DateTime.now()
+                print("plate check: "+code );
+
+                if(resultFromDB == code){
+                FirebaseDatabase.instance.reference().child('Xe').child(qrResult[0]).child('info')
+                    .update({
+                  "status": 1
                 });
+                }
                 //_dataString = result+time;
                 //print(_dataString);
+                //resultFromDB= "";
                 Navigator.of(context).pop();
+
               },
             ),
             FlatButton(
               child: Text('QUÉT LẠI'),
               onPressed: () {
-                FirebaseDatabase.instance.reference().child('Xe').child(result).child('info')
-                    .set({
+                FirebaseDatabase.instance.reference().child('Xe').child(qrResult[0]).child('info')
+                    .update({
                   'status': 2,
                 });
                 _scanQR();
@@ -244,6 +261,12 @@ Future<void> successDialog() async {
   void dispose() {
     animationController.dispose();
     super.dispose();
+  }
+
+  Future getDB(plate) async {
+    var val = await getInfo(plate);
+    print(val);
+    resultFromDB = val;
   }
 //  @override
 //  Widget build(BuildContext context) {
@@ -484,6 +507,13 @@ Future<void> successDialog() async {
         ),
       ],
     );
+  }
+  Future<String> getInfo(String plate) async {
+    String resultFromDB = (await FirebaseDatabase.instance.reference().child("Xe/"+plate+"/info/code").once()).value;
+    //print('sadasdsadasd');
+    print("info: "+resultFromDB);
+    //resultFromDB = result;
+    return resultFromDB;
   }
   addStringToSF(value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
