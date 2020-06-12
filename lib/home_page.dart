@@ -89,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 //      }
       _dataString = result;
       print(_dataString);
-      addStringToSF(_dataString);
+
       plateCheckDialog(plate);
     } on PlatformException catch (ex) {
       if (ex.code == BarcodeScanner.CameraAccessDenied) {
@@ -202,6 +202,8 @@ Future<void> successDialog() async {
             FlatButton(
               child: Text('XÁC NHẬN'),
               onPressed: () {
+                addStringToSF(_dataString);
+                print("add to share preference: "+ _dataString);
                 String code = qrResult[0]+ '-'+qrResult[1];
 
                 //String resultFromDB = getInfo(qrResult[0]) as String;
@@ -230,6 +232,7 @@ Future<void> successDialog() async {
                   'status': 2,
                 });
                 _scanQR();
+                Navigator.of(context).pop();
               },
             ),
           ],
